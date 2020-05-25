@@ -100,7 +100,7 @@ func generateCode(packageName, importPath string, queries []string) ([]byte, err
 	buf := bytes.NewBuffer([]byte{})
 
 	fmt.Fprintf(buf,
-		"//go:generate prep -f %s\n\npackage %s\n\nvar prepStatements = []string{\n%s,\n}",
+		"//go:generate prep -f %s\n\npackage %s\n\nvar PrepStatements = []string{\n%s,\n}",
 		importPath, packageName, strings.Join(queries, ",\n"))
 
 	formatted, err := imports.Process("", buf.Bytes(), nil)
