@@ -5,7 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"go/ast"
-	"go/build"
 	"go/types"
 	"log"
 	"os"
@@ -29,8 +28,9 @@ type (
 
 func main() {
 	var (
-		sourcePackage = flag.String("f", "", "source package import path, i.e. github.com/my/package")
-		withTests     = flag.Bool("t", false, "parse test files")
+		sourcePackage   = flag.String("f", "", "source package import path, i.e. github.com/my/package")
+		targetDirectory = flag.String("o", "", "target directory")
+		withTests       = flag.Bool("t", false, "parse test files")
 	)
 	flag.Parse()
 
@@ -72,12 +72,7 @@ func main() {
 		ast.Walk(finder, file)
 	}
 
-	path, err := getPathToPackage(*sourcePackage)
-	if err != nil {
-		log.Fatalf("prep: %v", err)
-	}
-
-	outputFileName := filepath.Join(path, "prepared_statements.go")
+	outputFileName := filepath.Join(*targetDirectory, "prepared_statements.go")
 
 	queries := uniqueStrings(finder.queries)
 
@@ -99,15 +94,6 @@ func main() {
 	if _, err := file.Write(code); err != nil {
 		log.Fatalf("prep: failed to write generated code to the file: %v", err)
 	}
-}
-
-func getPathToPackage(importPath string) (string, error) {
-	p, err := build.Default.Import(importPath, "", build.FindOnly)
-	if err != nil {
-		return "", fmt.Errorf("failed to detect absolute path of the package %q: %v", importPath, err)
-	}
-
-	return filepath.Join(p.SrcRoot, p.ImportPath), nil
 }
 
 func generateCode(packageName, importPath string, queries []string) ([]byte, error) {
